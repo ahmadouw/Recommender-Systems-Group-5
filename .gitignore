@@ -1,1 +1,3 @@
 /shared/data/project/training/one_hour
+src/__pycache__/
+src/results.csv
