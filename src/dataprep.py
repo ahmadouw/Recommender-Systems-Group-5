@@ -4,19 +4,24 @@ import numpy as np
 
 def encode_hashtags(hashtags):
     if type(hashtags) == str:
-        return hashtags.split()
+        return len(hashtags.split())
+    else:
+        return 0
+
+
+def encode_hashtags_tfidf(hashtags):
+    hashtags = hashtags.fillna('')
+    tfidf_vectorizer = TfidfVectorizer()
+    return tfidf_vectorizer.fit_transform(hashtags)
+
+
+def encode_text_tokens(text_tokens):
+    if type(text_tokens) == str:
+        return text_tokens.split()
     else:
         return []
 
-
-def encode_text_tokens(hashtags):
-    if type(hashtags) == str:
-        return hashtags.split()
-    else:
-        return []
-
-
-def import_data(filepath, limit_dataset=False):
+def import_data(filepath, limit_dataset=False, get_test_data=False):
     all_all_features = ["text_tokens", "hashtags", "tweet_id", "present_media", "present_links", "present_domains",
                         "tweet_type", "language", "tweet_timestamp", "engaged_with_user_id",
                         "engaged_with_user_follower_count",
@@ -44,7 +49,10 @@ def import_data(filepath, limit_dataset=False):
     ratings_raw["hashtags"] = ratings_raw["hashtags"].apply(encode_hashtags)
     ratings_raw["text_tokens"] = ratings_raw["text_tokens"].apply(encode_text_tokens)
 
-    if limit_dataset:
-        ratings_raw = ratings_raw[:30]
+    if not get_test_data and limit_dataset:
+        ratings_raw = ratings_raw[:3000]
+
+    if get_test_data and limit_dataset:
+        ratings_raw = ratings_raw.iloc[5000:5010]
 
     return ratings_raw

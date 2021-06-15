@@ -1,43 +1,61 @@
 import dataprep
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn import svm
 
-
-# use: "Text tokens", "Language", "Hashtags"
 
 def get_data(engagement_type):
     data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=True)
     data = data.loc[:, ["text_tokens", "hashtags", "language", engagement_type]]
-    return data
+    data = data.fillna(0)
+
+    train_data_int, test_data_int = train_test_split(data, test_size=0.2, shuffle=False)
+    return train_data_int, test_data_int
 
 
-def get_test_data(engagement_type, number):
-    data = dataprep.import_data("../shared/data/project/training/one_hour")
-    data = data.loc[:, ["text_tokens", "hashtags", "language", engagement_type]]
-    return data.iloc[number]
+def reply_create_model(data):
+    features = data.loc[:, ["language", "text_tokens", "hashtags"]]
+    samples = data["reply"].tolist()
 
+    print("features: \n", features)
+    print(type(features))
 
-def reply_create_model():
-    data = get_data("reply")
-    features = data.loc[:, ["language"]]
-    samples = data["reply"]
-
-    regr = svm.SVR()
+    regr = svm.LinearSVC()
     regr.fit(features, samples)
-
     return regr
 
 
-def reply_pred_model(input_features):
-    model = reply_create_model()
-    prediction = model.predict(input_features)
+def reply_create_bayes_model(data):
+    X = data.loc[:, ["language", "text_tokens", "hashtags"]]
+    y = data["reply"].tolist()
+
+    print("features: \n", X)
+    print(type(X))
+
+    clf = MultinomialNB()
+    clf.fit(X, y)
+
+    return clf
+
+
+def reply_pred_model(model, test_data):
+    prediction = model.predict(test_data.loc[:, ["language", "text_tokens", "hashtags"]])
     return prediction
 
 
 # test it
-test_tweet = get_test_data("reply", 301)
-print("=== TEST ===")
-print(test_tweet)
-print("----------")
-pred = reply_pred_model(test_tweet)
-print("Input: ", test_tweet, "Prediction:", pred)
+train_data, test_data = get_data("reply")
+print("Test data set:")
+print(test_data)
+
+# SVR
+model_1 = reply_create_model(train_data)
+pred = reply_pred_model(model_1, test_data)
+print("Prediction: \n", pred)
+
+
+# Naive Bayes
+model_2 = reply_create_bayes_model(train_data)
+pred_bayes = reply_pred_model(model_2, test_data)
+print("Prediction Bayes: \n", pred_bayes)
