@@ -1,62 +1,50 @@
 import dataprep
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import svm
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import precision_score
 
 
 def get_data(engagement_type):
-    data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=True)
+    data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=False)
     data = data.loc[:, ["text_tokens", "hashtags", "language", engagement_type]]
+
+    # one hot encode text-tokens -- pd.Series not very efficient
+    # TODO check if better onehot with pd.getdummydata
+    text_tokens = data.pop("text_tokens")
+    text_tokens = text_tokens.apply(pd.Series)
+    data = text_tokens.join(data)
+
+    # better strategy?
     data = data.fillna(0)
 
     train_data_int, test_data_int = train_test_split(data, test_size=0.2, shuffle=False)
     return train_data_int, test_data_int
 
 
-def reply_create_model(data):
-    features = data.loc[:, ["language", "text_tokens", "hashtags"]]
-    samples = data["reply"].tolist()
+def reply_create_model(data, target_name):
+    feature_data = data.copy()
+    target_data = feature_data.pop(target_name)
 
-    print("features: \n", features)
-    print(type(features))
-
-    regr = svm.LinearSVC()
-    regr.fit(features, samples)
+    regr = svm.LinearSVC(max_iter=2000)
+    regr.fit(feature_data, target_data)
     return regr
 
 
-def reply_create_bayes_model(data):
-    X = data.loc[:, ["language", "text_tokens", "hashtags"]]
-    y = data["reply"].tolist()
+def reply_pred_model(model, target_data, target_name):
+    target_data = target_data.copy()
+    target_data.pop(target_name)
 
-    print("features: \n", X)
-    print(type(X))
-
-    clf = MultinomialNB()
-    clf.fit(X, y)
-
-    return clf
-
-
-def reply_pred_model(model, test_data):
-    prediction = model.predict(test_data.loc[:, ["language", "text_tokens", "hashtags"]])
+    prediction = model.predict(target_data)
     return prediction
 
 
 # test it
-train_data, test_data = get_data("reply")
-print("Test data set:")
-print(test_data)
+target = "reply"
+train_data, test_data = get_data(target)
 
 # SVR
-model_1 = reply_create_model(train_data)
-pred = reply_pred_model(model_1, test_data)
-print("Prediction: \n", pred)
-
-
-# Naive Bayes
-model_2 = reply_create_bayes_model(train_data)
-pred_bayes = reply_pred_model(model_2, test_data)
-print("Prediction Bayes: \n", pred_bayes)
+model_1 = reply_create_model(train_data, target)
+pred = reply_pred_model(model_1, test_data, target)
+precision = precision_score(test_data[target], pred)
+print("precision: ", precision)

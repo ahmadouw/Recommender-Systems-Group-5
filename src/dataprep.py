@@ -23,7 +23,7 @@ def encode_text_tokens(text_tokens):
         return []
 
 
-def import_data(filepath, limit_dataset=False, get_test_data=False):
+def import_data(filepath, limit_dataset=False):
     all_all_features = ["text_tokens", "hashtags", "tweet_id", "present_media", "present_links", "present_domains",
                         "tweet_type", "language", "tweet_timestamp", "engaged_with_user_id",
                         "engaged_with_user_follower_count",
@@ -52,10 +52,7 @@ def import_data(filepath, limit_dataset=False, get_test_data=False):
     #ratings_raw["hashtags"] = encode_hashtags_tfidf(ratings_raw["hashtags"])
     ratings_raw["text_tokens"] = ratings_raw["text_tokens"].apply(encode_text_tokens)
 
-    if not get_test_data and limit_dataset:
+    if limit_dataset:
         ratings_raw = ratings_raw[:3000]
-
-    if get_test_data and limit_dataset:
-        ratings_raw = ratings_raw.iloc[5000:5010]
 
     return ratings_raw
