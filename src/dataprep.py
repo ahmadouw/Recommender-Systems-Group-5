@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def encode_hashtags(hashtags):
@@ -20,6 +21,7 @@ def encode_text_tokens(text_tokens):
         return text_tokens.split()
     else:
         return []
+
 
 def import_data(filepath, limit_dataset=False, get_test_data=False):
     all_all_features = ["text_tokens", "hashtags", "tweet_id", "present_media", "present_links", "present_domains",
@@ -47,6 +49,7 @@ def import_data(filepath, limit_dataset=False, get_test_data=False):
 
     # strings to lists by delimiter
     ratings_raw["hashtags"] = ratings_raw["hashtags"].apply(encode_hashtags)
+    #ratings_raw["hashtags"] = encode_hashtags_tfidf(ratings_raw["hashtags"])
     ratings_raw["text_tokens"] = ratings_raw["text_tokens"].apply(encode_text_tokens)
 
     if not get_test_data and limit_dataset:
