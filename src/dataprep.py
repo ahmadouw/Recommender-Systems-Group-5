@@ -45,6 +45,6 @@ def import_data(filepath, limit_dataset=False):
     ratings_raw["text_tokens"] = ratings_raw["text_tokens"].apply(encode_text_tokens)
 
     if limit_dataset:
-        ratings_raw = ratings_raw[:300]
+        ratings_raw = ratings_raw[:30]
 
     return ratings_raw

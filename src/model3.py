@@ -19,7 +19,7 @@ def get_test_data(engagement_type, number):
 
 def reply_create_model():
     data = get_data("reply")
-    features = data.loc[:, ["text_tokens", "hashtags", "language"]]
+    features = data.loc[:, ["language"]]
     samples = data["reply"]
 
     regr = svm.SVR()
@@ -36,6 +36,8 @@ def reply_pred_model(input_features):
 
 # test it
 test_tweet = get_test_data("reply", 301)
+print("=== TEST ===")
 print(test_tweet)
+print("----------")
 pred = reply_pred_model(test_tweet)
 print("Input: ", test_tweet, "Prediction:", pred)
