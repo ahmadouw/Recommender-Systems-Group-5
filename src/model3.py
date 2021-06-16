@@ -1,19 +1,30 @@
 import dataprep
 import pandas as pd
+
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.metrics import precision_score
 
 
+def encode_and_bind(original_dataframe, feature_to_encode):
+    target_column = original_dataframe.pop(feature_to_encode)
+    target_column = target_column.apply(pd.Series)
+    dummies = pd.get_dummies(target_column.apply(pd.Series).stack()).sum(level=0)
+    res = pd.concat([dummies, original_dataframe], axis=1)
+    return res
+
+
 def get_data(engagement_type):
-    data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=False)
+    data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=True)
     data = data.loc[:, ["text_tokens", "hashtags", "language", engagement_type]]
 
     # one hot encode text-tokens -- pd.Series not very efficient
-    # TODO check if better onehot with pd.getdummydata
-    text_tokens = data.pop("text_tokens")
-    text_tokens = text_tokens.apply(pd.Series)
-    data = text_tokens.join(data)
+    # text_tokens = data.pop("text_tokens")
+    # text_tokens = text_tokens.apply(pd.Series)
+    # data = text_tokens.join(data)
+
+    data = encode_and_bind(data, "text_tokens")
 
     # better strategy?
     data = data.fillna(0)
@@ -42,6 +53,8 @@ def reply_pred_model(model, target_data, target_name):
 # test it
 target = "reply"
 train_data, test_data = get_data(target)
+
+print(test_data)
 
 # SVR
 model_1 = reply_create_model(train_data, target)
