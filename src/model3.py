@@ -6,39 +6,19 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.metrics import precision_score
 
-
-def encode_and_bind(original_dataframe, feature_to_encode):
-    target_column = original_dataframe.pop(feature_to_encode)
-    target_column = target_column.apply(pd.Series)
-    dummies = pd.get_dummies(target_column.apply(pd.Series).stack()).sum(level=0)
-    res = pd.concat([dummies, original_dataframe], axis=1)
-    return res
-
-
-def get_data(engagement_type):
-    data = dataprep.import_data("../shared/data/project/training/one_hour", limit_dataset=True)
-    data = data.loc[:, ["text_tokens", "hashtags", "language", engagement_type]]
-
-    # one hot encode text-tokens -- pd.Series not very efficient
-    # text_tokens = data.pop("text_tokens")
-    # text_tokens = text_tokens.apply(pd.Series)
-    # data = text_tokens.join(data)
-
-    data = encode_and_bind(data, "text_tokens")
-
-    # better strategy?
-    data = data.fillna(0)
-
-    train_data_int, test_data_int = train_test_split(data, test_size=0.2, shuffle=False)
-    return train_data_int, test_data_int
+used_features = ["text_tokens", "language"]
+target_features = ["retweet"]
+data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=3000)
+train_data, test_data = dataprep.split_train_test(data)
 
 
 def reply_create_model(data, target_name):
     feature_data = data.copy()
-    target_data = feature_data.pop(target_name)
+    target_data = data.loc[:, target_name]
+    feature_data = feature_data.drop(labels=target_name, axis=1, inplace=False)
 
     regr = svm.LinearSVC(max_iter=2000)
-    regr.fit(feature_data, target_data)
+    regr.fit(feature_data, target_data.values.ravel())
     return regr
 
 

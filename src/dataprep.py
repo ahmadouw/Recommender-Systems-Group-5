@@ -10,19 +10,6 @@ def encode_hashtags(hashtags):
         return 0
 
 
-def encode_hashtags_tfidf(hashtags):
-    hashtags = hashtags.fillna('')
-    tfidf_vectorizer = TfidfVectorizer()
-    return tfidf_vectorizer.fit_transform(hashtags)
-
-
-def encode_text_tokens(text_tokens):
-    if type(text_tokens) == str:
-        return text_tokens.split()
-    else:
-        return []
-
-
 def import_data(filepath, limit_dataset=False):
     all_all_features = ["text_tokens", "hashtags", "tweet_id", "present_media", "present_links", "present_domains",
                         "tweet_type", "language", "tweet_timestamp", "engaged_with_user_id",
@@ -56,3 +43,8 @@ def import_data(filepath, limit_dataset=False):
         ratings_raw = ratings_raw[:3000]
 
     return ratings_raw
+
+
+def split_train_test(data, test_size=0.2, shuffle=False):
+    train_data_int, test_data_int = train_test_split(data, test_size=test_size, shuffle=shuffle)
+    return train_data_int, test_data_int
