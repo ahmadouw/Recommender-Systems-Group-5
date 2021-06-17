@@ -4,9 +4,9 @@ import pandas as pd
 from sklearn import svm
 from sklearn.metrics import precision_score
 
-used_features = ["text_tokens", "language"]
+used_features = ["language", "hashtags", "present_media", "present_links", "present_domains"]
 target_features = ["retweet"]
-data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=3000)
+data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=5000)
 train_data, test_data = dataprep.split_train_test(data)
 
 
@@ -24,15 +24,17 @@ def reply_pred_model(model, target_data, target_name):
     target_data = target_data.copy()
     target_data = target_data.drop(labels=target_name, axis=1, inplace=False)
 
+    #print("target data \n", target_data.columns)
+
     prediction = model.predict(target_data)
     return prediction
 
 
 # test it
-print("data: ", data.shape)
-print("test_data: ", test_data.shape)
-print("train_data: ", train_data.shape)
-print("test_data \n", test_data)
+#print("data: ", data.shape)
+#print("test_data: ", test_data.shape)
+#print("train_data: ", train_data.shape)
+#print("test_data \n", test_data)
 
 sub_1 = data.loc[data['retweet'] == 1]
 print("1: ", sub_1.shape[0])

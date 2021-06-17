@@ -73,7 +73,7 @@ def import_data(filepath=default_filepath, source_features=default_features_all,
         if feature in data:
             data[feature] = data[feature].where(data[feature].isnull(), 1).fillna(0).astype(int)
 
-    features_to_sum = ["hashtags", "present_links", "present_domains"]
+    features_to_sum = ["text_tokens", "hashtags", "present_links", "present_domains"]
     for feature in features_to_sum:
         if feature in data:
             data[feature] = data[feature].apply(lambda x: encode_length(x))
