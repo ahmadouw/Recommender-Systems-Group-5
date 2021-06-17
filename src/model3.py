@@ -1,8 +1,6 @@
 import dataprep
 import pandas as pd
 
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.metrics import precision_score
 
@@ -24,20 +22,26 @@ def reply_create_model(data, target_name):
 
 def reply_pred_model(model, target_data, target_name):
     target_data = target_data.copy()
-    target_data.pop(target_name)
+    target_data = target_data.drop(labels=target_name, axis=1, inplace=False)
 
     prediction = model.predict(target_data)
     return prediction
 
 
 # test it
-target = "reply"
-train_data, test_data = get_data(target)
+print("data: ", data.shape)
+print("test_data: ", test_data.shape)
+print("train_data: ", train_data.shape)
+print("test_data \n", test_data)
 
-print(test_data)
+sub_1 = data.loc[data['retweet'] == 1]
+print("1: ", sub_1.shape[0])
+sub_0 = data.loc[data['retweet'] == 0]
+print("0: ", sub_0.shape[0])
 
-# SVR
-model_1 = reply_create_model(train_data, target)
-pred = reply_pred_model(model_1, test_data, target)
-precision = precision_score(test_data[target], pred)
+# LinearSVC
+model_1 = reply_create_model(train_data, target_features)
+pred = reply_pred_model(model_1, test_data, target_features)
+print(pred)
+precision = precision_score(test_data[target_features], pred)
 print("precision: ", precision)
