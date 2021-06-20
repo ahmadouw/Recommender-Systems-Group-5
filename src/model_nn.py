@@ -3,14 +3,22 @@
 # Created on 2021-06-19 at 15:03.
 # Created by andreasmerckel (coffeecodecruncher@gmail.com)
 #
-
-
-from sklearn.metrics import precision_score, mean_squared_error
+import pandas as pd
+from sklearn.metrics import (
+    classification_report, plot_confusion_matrix,
+    precision_score,
+    mean_squared_error,
+)
 from sklearn.neural_network import MLPClassifier
 import seaborn as sns
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.preprocessing import StandardScaler
 
 import dataprep
+from project.src import preprocessing
 
 
 def init_reply_model(data, target_name):
@@ -45,29 +53,57 @@ def reply_pred_model(model, target_data, target_name):
     return model.predict(target_data)
 
 
-def sba_plotting(df, x_axis, y_axis, color, title, xlabel, ylabel):
+def rebalancer(df, target):
+    """
+
+    """
+    y = df[target]
+    x = df.drop(columns=[target], axis=1)
+    scale = StandardScaler()
+    x_scaled = scale.fit_transform(x)
+
+    over = SMOTE(sampling_strategy='minority')
+    under = RandomUnderSampler()
+    steps = [('o', over), ('u', under)]
+    pipeline = Pipeline(steps=steps)
+    x, y = pipeline.fit_resample(x_scaled, y)
+    x = pd.DataFrame(x)
+    x[target] = y
+    x.columns = df.columns
+    # x.append(y)
+    return x
+
+
+def plotter(df, x_axis, y_axis, color='salmon',
+            # title, xlabel, ylabel
+            ):
     plt.subplots(figsize=(16, 9))
-    sns.barplot(x=x_axis, y=y_axis, color=color, data=df)
-    plt.title(title, fontsize=20)
-    plt.xlabel(xlabel, fontsize=15)
-    plt.ylabel(ylabel, fontsize=15)
+    sns.countplot(x=x_axis, data=df)
+    # plt.hist(x_axis, bins=2)
     plt.show()
-    # print(df.DisbursementGross.describe())
+    # sns.barplot(x=x_axis, y=y_axis, color=color, data=df)
+    # plt.title(title, fontsize=20)
+    # plt.xlabel(xlabel, fontsize=15)
+    # plt.ylabel(ylabel, fontsize=15)
+    plt.show()
+    # print(data.iloc[0:3, 0:])
+    sns.heatmap(df.corr())
+    plt.show()
 
 
-def test():
+def test(nrows=50):
     used_features = [
             # "text_tokens",
-            # "hashtags",
+            "hashtags",
             # "tweet_id",
-            # "present_media",
-            # "present_links",
-            # "present_domains",
-            # "tweet_type",
-            # "language",
-            "tweet_timestamp",
-            "engaged_with_user_id",
-            "engaged_with_user_follower_count",
+            "present_media",
+            "present_links",
+            "present_domains",
+            "tweet_type",
+            "language",
+            # "tweet_timestamp",
+            # "engaged_with_user_id",
+            # "engaged_with_user_follower_count",
             # "engaged_with_user_following_count",
             # "engaged_with_user_is_verified",
             # "engaged_with_user_account_creation",
@@ -84,26 +120,24 @@ def test():
             # "like",
             # "retweet_with_comment",
     ]
-    data = dataprep.import_data(source_features=used_features,
-                                target_features=target_features,
-                                nrows=50)
+    data = preprocessing.import_data(source_features=used_features,
+                                     target_features=target_features,
+                                     nrows=nrows)
 
-    # print(data.iloc[0:3, 0:])
-    # plt.subplots(figsize=(16, 9))
-    # sns.heatmap(data.corr())
-    # plt.show()
-
-    used_features = [
-            # "engaged_with_user_id",
-            "engaged_with_user_follower_count",
-            "engaged_with_user_following_count",
-    ]
+    with open("out/out-1.csv", 'w') as f:
+        print(data.to_string(index=False), file=f)
 
     data = dataprep.import_data(source_features=used_features,
                                 target_features=target_features,
-                                nrows=5000)
+                                nrows=nrows)
 
-    print(data.head())
+    with open("out/out-2.csv", 'w') as f:
+        print(data.to_string(index=False), file=f)
+
+    # plotter(data, target_features[0], used_features[0])
+    # data = rebalancer(data, target_features[0])
+    # plotter(data, target_features[0], used_features[0])
+    # print(data.head())
 
     train_data, test_data = dataprep.split_train_test(data)
 
@@ -113,15 +147,31 @@ def test():
     print(f"0: {sub_0.shape[0]}")
 
     model_nn = init_reply_model(train_data, target_features)
+
     pred = reply_pred_model(model_nn, test_data, target_features)
     print(pred)
-    precision = precision_score(test_data[target_features],
-                                pred,
-                                average="binary",
-                                zero_division=1)
-    print(f"Precision: {precision}")
+    # precision = precision_score(test_data[target_features],
+    #                             pred,
+    #                             labels=['retweet'],
+    #                             average="micro")
+
+    # Confusion Matrix
+    # plot_confusion_matrix(pred, )
+    # plt.show()
+    # print('=' * 50)
+    # print('Classification Report: \n',
+    #       classification_report(test_data, pred, digits=3))
+    # print('=' * 50)
+
+    # ROC + PR Curves
+    # fpr, tpr, thresholds = roc_curve(y_test, y_test_prob)
+    # skplt.metrics.plot_roc(y_test, y_probas, figsize=(16, 9))
+    # skplt.metrics.plot_precision_recall(y_test, y_probas, figsize=(16, 9))
+    # plt.show()
+
+    # print(f"Precision: {precision}")
     print(f"Error: {mean_squared_error(test_data[target_features], pred)}")
 
 
 if __name__ == "__main__":
-    test()
+    test(5000)
