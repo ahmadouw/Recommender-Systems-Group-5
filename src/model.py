@@ -1,4 +1,7 @@
 import numpy as np
+import model3
+import dataprep
+
 
 '''
 You need to structure your implementation in a way that in this class the prediction
@@ -10,8 +13,7 @@ to predicte multiple classes.
 '''
 
 def reply_pred_model(input_features):
-    # TODO fill in your implementation of the model
-    return np.random.rand()
+    return model3.reply_pred_model(input_features)
 
 def retweet_pred_model(input_features):
     # TODO fill in your implementation of the model
@@ -24,3 +26,9 @@ def quote_pred_model(input_features):
 def fav_pred_model(input_features):
     # TODO fill in your implementation of the model
     return np.random.rand()
+
+
+# test the function
+## TODO REMOVE!
+target_data = dataprep.import_data(nrows=20000, use_transform_data=False)
+print(reply_pred_model(target_data))

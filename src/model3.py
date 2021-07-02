@@ -1,49 +1,77 @@
 import dataprep
-import pandas as pd
 
-from sklearn import svm
-from sklearn.metrics import precision_score
-
-used_features = ["language", "hashtags", "present_media", "present_links", "present_domains"]
-target_features = ["retweet"]
-data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=5000)
-train_data, test_data = dataprep.split_train_test(data)
+from sklearn.ensemble import GradientBoostingRegressor
 
 
-def reply_create_model(data, target_name):
-    feature_data = data.copy()
-    target_data = data.loc[:, target_name]
-    feature_data = feature_data.drop(labels=target_name, axis=1, inplace=False)
+used_features = ["tweet_type", "language", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
+target_features = ["retweet", "reply", "like", "retweet_with_comment"]
+data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=20000)
 
-    regr = svm.LinearSVC(max_iter=2000)
+
+def create_model(train_data, target_name):
+    feature_data = train_data.copy()
+
+    # dependent Y => to be predicted
+    target_data = train_data.loc[:, target_name]
+
+    # independent X
+    feature_data = feature_data.drop(labels=target_features, axis=1, inplace=False)
+
+    regr = GradientBoostingRegressor(random_state=1)
     regr.fit(feature_data, target_data.values.ravel())
     return regr
 
 
-def reply_pred_model(model, target_data, target_name):
-    target_data = target_data.copy()
-    target_data = target_data.drop(labels=target_name, axis=1, inplace=False)
+def prepare_input_features(input_features):
+    input_features = input_features.loc[:, used_features]
+    return dataprep.transform_data(input_features)
 
-    #print("target data \n", target_data.columns)
 
-    prediction = model.predict(target_data)
+def reply_pred_model(input_features):
+    model = create_model(data, ["reply"])
+    prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
 
-# test it
-#print("data: ", data.shape)
-#print("test_data: ", test_data.shape)
-#print("train_data: ", train_data.shape)
-#print("test_data \n", test_data)
+def retweet_pred_model(input_features):
+    model = create_model(data, ["retweet"])
+    prediction = model.predict(prepare_input_features(input_features))
+    return prediction
 
-sub_1 = data.loc[data['retweet'] == 1]
-print("1: ", sub_1.shape[0])
-sub_0 = data.loc[data['retweet'] == 0]
-print("0: ", sub_0.shape[0])
 
-# LinearSVC
-model_1 = reply_create_model(train_data, target_features)
-pred = reply_pred_model(model_1, test_data, target_features)
-print(pred)
-precision = precision_score(test_data[target_features], pred)
-print("precision: ", precision)
+def quote_pred_model(input_features):
+    model = create_model(data, ["retweet_with_comment"])
+    prediction = model.predict(prepare_input_features(input_features))
+    return prediction
+
+
+def fav_pred_model(input_features):
+    model = create_model(data, ["like"])
+    prediction = model.predict(prepare_input_features(input_features))
+    return prediction
+
+
+# def test(target_data):
+#
+#     # create new test set, drop labels to be predicted
+#     target_data = target_data.copy()
+#     ground_truth = target_data.copy()
+#     target_data = target_data.drop(labels=["reply", "retweet", "retweet_with_comment", "like"], axis=1, inplace=False)
+#
+#     # get prediction for "reply"
+#     prediction_reply = reply_pred_model(target_data)
+#     mse_reply = mean_squared_error(ground_truth["reply"], prediction_reply, squared=False)
+#     print("RMSE Reply: ", mse_reply)
+#
+#     prediction_retweet = retweet_pred_model(target_data)
+#     mse_retweet = mean_squared_error(ground_truth["retweet"], prediction_retweet, squared=False)
+#     print("RMSE Retweet: ", mse_retweet)
+#
+#     prediction_quote = quote_pred_model(target_data)
+#     mse_quote = mean_squared_error(ground_truth["retweet_with_comment"], prediction_quote, squared=False)
+#     print("RMSE Quote: ", mse_quote)
+#
+#     prediction_fav = fav_pred_model(target_data)
+#     mse_fav = mean_squared_error(ground_truth["like"], prediction_fav, squared=False)
+#     print("RMSE Fav: ", mse_fav)
+

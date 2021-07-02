@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # default values
 default_filepath = "../shared/data/project/training/one_hour"
@@ -43,26 +44,13 @@ def encode_length(target):
         return 0
 
 
-def import_data(filepath=default_filepath, source_features=default_features_all, target_features=default_targets, nrows=None, skiprows=0):
-
-    if target_features is None:
-        target_features = default_targets
-
-    all_features = np.unique(np.concatenate((source_features, target_features)))
-    ratings_raw = pd.read_csv(filepath, delimiter='\x01', names=default_features_all, nrows=nrows, skiprows=skiprows)
-
-    # select needed features
-    data = ratings_raw.loc[:, all_features]
-
-    # for label in target_features:
-    #     data[label] = np.isnan(data[label]) == False
-
-    features_string_to_list = ["text_tokens", "hashtags", "present_media", "present_links", "present_domains"]
+def transform_data(data):
+    features_string_to_list = ["hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
     for feature in features_string_to_list:
         if feature in data:
             data[feature] = data[feature].apply(split_string_to_list)
 
-    features_to_one_hot = ["language", "text_tokens", "present_media", "tweet_type"]
+    features_to_one_hot = ["language", "present_media", "tweet_type"]
     for feature in features_to_one_hot:
         if feature in data:
             one_hot = encode_one_hot(data, feature)
@@ -73,13 +61,30 @@ def import_data(filepath=default_filepath, source_features=default_features_all,
         if feature in data:
             data[feature] = data[feature].where(data[feature].isnull(), 1).fillna(0).astype(int)
 
-    features_to_sum = ["text_tokens", "hashtags", "present_links", "present_domains"]
+    features_to_sum = ["hashtags", "present_links", "present_domains", "text_tokens"]
     for feature in features_to_sum:
         if feature in data:
             data[feature] = data[feature].apply(lambda x: encode_length(x))
 
     # better strategy?
     data = data.fillna(0)
+
+    return data
+
+
+def import_data(filepath=default_filepath, source_features=default_features_all, target_features=default_targets, nrows=None, skiprows=0, use_transform_data=True):
+
+    if target_features is None:
+        target_features = default_targets
+
+    all_features = np.unique(np.concatenate((source_features, target_features)))
+    ratings_raw = pd.read_csv(filepath, delimiter='\x01', names=default_features_all, nrows=nrows, skiprows=skiprows)
+
+    # select needed features
+    data = ratings_raw.loc[:, all_features]
+
+    if use_transform_data:
+        data = transform_data(data)
 
     return data
 

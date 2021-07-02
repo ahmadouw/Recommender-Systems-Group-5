@@ -1,4 +1,5 @@
 /shared/data/project/training/one_hour
+/shared/data/project/validation/one_hour
 .idea
 __pycache__/
 
