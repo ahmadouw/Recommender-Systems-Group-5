@@ -7,6 +7,11 @@ used_features = ["tweet_type", "language", "hashtags", "present_media", "present
 target_features = ["retweet", "reply", "like", "retweet_with_comment"]
 data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=20000)
 
+model_reply_path = "model_content/model_reply.joblib"
+model_retweet_path = "model_content/model_retweet.joblib"
+model_quote_path = "model_content/model_quote.joblib"
+model_fav_path = "model_content/model_fav.joblib"
+
 
 def create_model(train_data, target_name):
     feature_data = train_data.copy()
@@ -22,32 +27,53 @@ def create_model(train_data, target_name):
     return regr
 
 
+def export_model_files():
+    model_reply_new = create_model(data, ["reply"])
+    dump(model_reply_new, model_reply_path)
+
+    model_retweet_new = create_model(data, ["reply"])
+    dump(model_retweet_new, model_retweet_path)
+
+    model_quote_new = create_model(data, ["retweet_with_comment"])
+    dump(model_quote_new, model_quote_path)
+
+    model_fav_new = create_model(data, ["like"])
+    dump(model_fav_new, model_fav_path)
+
+
+# TODO check if exists?
+# export_model_files()
+model_reply = load(model_reply_path)
+model_retweet = load(model_retweet_path)
+model_quote = load(model_quote_path)
+model_fav = load(model_fav_path)
+
+
 def prepare_input_features(input_features):
     input_features = input_features.loc[:, used_features]
     return dataprep.transform_data(input_features)
 
 
 def reply_pred_model(input_features):
-    # model = create_model(data, ["reply"])
-    model = load("model_reply.joblib")
+    model = model_reply
     prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
 
 def retweet_pred_model(input_features):
-    model = create_model(data, ["retweet"])
+    model = model_retweet
     prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
 
 def quote_pred_model(input_features):
-    model = create_model(data, ["retweet_with_comment"])
+    model = model_quote
     prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
 
 def fav_pred_model(input_features):
-    model = create_model(data, ["like"])
+    model = model_fav
     prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
@@ -75,10 +101,3 @@ def fav_pred_model(input_features):
 #     prediction_fav = fav_pred_model(target_data)
 #     mse_fav = mean_squared_error(ground_truth["like"], prediction_fav, squared=False)
 #     print("RMSE Fav: ", mse_fav)
-
-model_reply = create_model(data, ["reply"])
-dump(model_reply, "model_reply.joblib")
-
-# predict with pre-trained model
-target_data = dataprep.import_data(nrows=20000, use_transform_data=False)
-print(reply_pred_model(target_data))

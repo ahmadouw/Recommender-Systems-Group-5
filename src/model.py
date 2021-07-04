@@ -14,7 +14,9 @@ to predicte multiple classes.
 
 def reply_pred_model(input_features):
     # TODO fill in your implementation of the model
-    
+
+    return model_content.reply_pred_model(input_features)
+
     #U2U
     #tweet_id = input_features[all_features_to_idx['tweet_id']]
     #user_id = input_features[all_features_to_idx['engaging_user_id']]
