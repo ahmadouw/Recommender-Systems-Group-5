@@ -1,5 +1,5 @@
 import numpy as np
-import model3
+import model_content
 import dataprep
 
 

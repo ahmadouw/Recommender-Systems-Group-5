@@ -1,7 +1,7 @@
 import dataprep
 
 from sklearn.ensemble import GradientBoostingRegressor
-
+from joblib import dump, load
 
 used_features = ["tweet_type", "language", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
 target_features = ["retweet", "reply", "like", "retweet_with_comment"]
@@ -28,7 +28,8 @@ def prepare_input_features(input_features):
 
 
 def reply_pred_model(input_features):
-    model = create_model(data, ["reply"])
+    # model = create_model(data, ["reply"])
+    model = load("model_reply.joblib")
     prediction = model.predict(prepare_input_features(input_features))
     return prediction
 
@@ -75,3 +76,9 @@ def fav_pred_model(input_features):
 #     mse_fav = mean_squared_error(ground_truth["like"], prediction_fav, squared=False)
 #     print("RMSE Fav: ", mse_fav)
 
+model_reply = create_model(data, ["reply"])
+dump(model_reply, "model_reply.joblib")
+
+# predict with pre-trained model
+target_data = dataprep.import_data(nrows=20000, use_transform_data=False)
+print(reply_pred_model(target_data))
