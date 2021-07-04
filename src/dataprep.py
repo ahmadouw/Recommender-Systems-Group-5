@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # default values
 default_filepath = "../shared/data/project/training/one_hour"
+validation_filepath = "../shared/data/project/training/one_hour"
 default_features_all = ["text_tokens", "hashtags", "tweet_id", "present_media", "present_links", "present_domains",
                         "tweet_type", "language", "tweet_timestamp", "engaged_with_user_id",
                         "engaged_with_user_follower_count",

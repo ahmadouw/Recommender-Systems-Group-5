@@ -63,5 +63,5 @@ def fav_pred_model(input_features):
 
 # test the function
 ## TODO REMOVE!
-target_data = dataprep.import_data(nrows=20000, use_transform_data=False)
+target_data = dataprep.import_data(filepath=dataprep.validation_filepath, nrows=20000, use_transform_data=False)
 print(reply_pred_model(target_data))
