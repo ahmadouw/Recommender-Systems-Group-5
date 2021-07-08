@@ -1,11 +1,12 @@
 import dataprep
+import os
 
 from sklearn.ensemble import GradientBoostingRegressor
 from joblib import dump, load
 
 used_features = ["tweet_type", "language", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
 target_features = ["retweet", "reply", "like", "retweet_with_comment"]
-data = dataprep.import_data(source_features=used_features, target_features=target_features, nrows=20000)
+data = dataprep.import_data(source_features=used_features, target_features=target_features)
 
 model_reply_path = "model_content/model_reply.joblib"
 model_retweet_path = "model_content/model_retweet.joblib"
@@ -19,6 +20,9 @@ def create_model(train_data, target_name):
     # dependent Y => to be predicted
     target_data = train_data.loc[:, target_name]
 
+    #print(f"training Data for ${target_name}: \n", target_data.shape)
+    #print(train_data.head())
+
     # independent X
     feature_data = feature_data.drop(labels=target_features, axis=1, inplace=False)
 
@@ -31,7 +35,7 @@ def export_model_files():
     model_reply_new = create_model(data, ["reply"])
     dump(model_reply_new, model_reply_path)
 
-    model_retweet_new = create_model(data, ["reply"])
+    model_retweet_new = create_model(data, ["retweet"])
     dump(model_retweet_new, model_retweet_path)
 
     model_quote_new = create_model(data, ["retweet_with_comment"])
@@ -41,12 +45,31 @@ def export_model_files():
     dump(model_fav_new, model_fav_path)
 
 
-# TODO check if exists?
-# export_model_files()
-model_reply = load(model_reply_path)
-model_retweet = load(model_retweet_path)
-model_quote = load(model_quote_path)
-model_fav = load(model_fav_path)
+#export_model_files()
+
+if os.path.isfile(model_reply_path):
+    model_reply = load(model_reply_path)
+else:
+    model_reply = create_model(data, ["reply"])
+    dump(model_reply, model_reply_path)
+
+if os.path.isfile(model_retweet_path):
+    model_retweet = load(model_retweet_path)
+else:
+    model_retweet = create_model(data, ["retweet"])
+    dump(model_retweet, model_retweet_path)
+
+if os.path.isfile(model_quote_path):
+    model_quote = load(model_quote_path)
+else:
+    model_quote = create_model(data, ["retweet_with_comment"])
+    dump(model_quote, model_quote_path)
+
+if os.path.isfile(model_fav_path):
+    model_fav = load(model_fav_path)
+else:
+    model_fav = create_model(data, ["like"])
+    dump(model_fav, model_fav_path)
 
 
 def prepare_input_features(input_features):
