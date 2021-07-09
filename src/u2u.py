@@ -9,15 +9,19 @@ import sklearn.preprocessing as pp
 from sklearn import svm
 from sklearn.metrics import precision_score
 
-used_features = ["engaging_user_id", "tweet_id"]
-target_features = ["retweet", "reply", "like", "retweet_with_comment"]
-# reply, like, retweet_with_comment
-imported_data = dataprep.import_data(source_features=used_features, target_features=target_features)
+from joblib import dump, load
+
+
+def get_imported_data():
+    used_features = ["engaging_user_id", "tweet_id"]
+    target_features = ["retweet", "reply", "like", "retweet_with_comment"]
+    # reply, like, retweet_with_comment
+    return dataprep.import_data(source_features=used_features, target_features=target_features)
 
 
 class Predictor:
 
-    def __init__(self, interaction_category, input_data):
+    def __init__(self, interaction_category, input_data, dump_to_file=False):
         self.k = 5
         self.interaction_category = interaction_category
 
@@ -30,7 +34,7 @@ class Predictor:
 
         self.m = userIds.size
         self.n = tweet_ids.size
-        numRatings = len(imported_data)
+        numRatings = len(input_data)
 
         ## create internal ids for movies and users, that have consecutive indexes starting from 0
         self.tweetId_to_tweetIDX = dict(zip(tweet_ids, range(0, tweet_ids.size)))
@@ -47,6 +51,10 @@ class Predictor:
 
         self.R = sp.csr_matrix((data.interaction, (data.engaging_user_id, data.tweet_id)))
         self.R_dok = self.R.todok()
+        if dump_to_file:
+            dump(self, "model_content/u2u_"+interaction_category+".joblib")
+
+
 
     def compute_pairwise_user_similarity(self, u_id, v_id):
         u = self.R[u_id, :].copy()
@@ -111,11 +119,14 @@ class Predictor:
                 taken += 1
                 if taken >= self.k:
                     break
+            if uU_copy[i] == 0:
+                break
 
         return nh
 
     def predict_rating(self, u_id, i_id):
         nh = self.create_user_neighborhood(u_id, i_id)
+
 
         numerator = np.array([nh[x] * (self.R[x, i_id]) for x in nh]).sum()
         denominator = np.array([abs(nh[x]) for x in nh]).sum()
@@ -129,10 +140,13 @@ class Predictor:
 
         return prediction
 
-    def predict(self, user_original_id, tweet_original_id):
+    def predict(self, user_original_id, tweet_original_id, binary=False):
         try:
             tweet_id = self.tweetId_to_tweetIDX[tweet_original_id]
             user_id = self.userId_to_userIDX[user_original_id]
-            return self.predict_rating(user_id, tweet_id)
+            if binary:
+                return 1 if self.predict_rating(user_id, tweet_id) > 0.5 else 0
+            else:
+                return self.predict_rating(user_id, tweet_id)
         except:
             return 0
