@@ -59,6 +59,15 @@ def split_string_to_list(target):
         return target.split()
     else:
         return []
+    
+def bool_to_int(target):
+    if type(target) == str:
+        if target == "false":
+            return 0
+        elif target == "true":
+            return 1
+        else:
+            raise TypeError
 
 
 # split string to list by whitespace then count elements, e.g. hashtags
@@ -77,9 +86,19 @@ def transform_data(data):
             "present_domains",
             "text_tokens"
     ]
+    
+    features_bool_to_int = [
+        "engagee_follows_engager",
+        "engaged_with_user_is_verified"
+    ]
+    
     for feature in features_string_to_list:
         if feature in data:
             data[feature] = data[feature].apply(split_string_to_list)
+            
+    for feature in features_bool_to_int:
+        if feature in data:
+            data[feature] = data[feature].apply(bool_to_int)
 
     features_to_one_hot = [
             "language",

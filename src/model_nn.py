@@ -9,9 +9,6 @@ import pandas as pd
 # import scikitplot as skplt
 import numpy as np
 import seaborn as sns
-# from imblearn.over_sampling import SMOTE
-# from imblearn.pipeline import Pipeline
-# from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
@@ -25,12 +22,12 @@ from sklearn.preprocessing import StandardScaler
 import dataprep
 
 
-nrows = 5000
-
-
 def prepare_input_features(input_features, used_features):
+    print(f"input_features: {input_features}")
+    print(f"used_features: {used_features}")
     input_features = input_features.loc[:, used_features]
-    return dataprep.transform_data(input_features)
+    return input_features
+    #return dataprep.transform_data(input_features)
 
 
 def prepare_input(data, target_feature):
@@ -38,38 +35,43 @@ def prepare_input(data, target_feature):
 
 
 def reply_pred_model(target_data):
-    target_data = prepare_input_features(target_data, get_reply_used_features())
+    #hashtags, present_media, present_links, present_domains, tweet_type, engaged_with_user_following_count, engaged_with_user_is_verified, engaged_with_user_account_creation, engagee_follows_engager = target_data
+    #target_data = prepare_input_features(target_data, get_reply_used_features())
+    #target_data = pd.DataFrame(target_data, columns=["hashtags", "present_media", "present_links", "present_domains", "tweet_type", "engaged_with_user_following_count", "engaged_with_user_is_verified", "engaged_with_user_account_creation", "engagee_follows_engager"])
+    #target_data = prepare_input_features(target_data, None)
+    #print(f"post-prepare_input_features: {target_data}")
     with open("model_nn/nn_model_reply.pickle", "rb") as f:
         return predict(f, target_data)
 
 
 def retweet_pred_model(target_data):
-    target_data = prepare_input_features(target_data, get_retweet_used_features())
+    #target_data = prepare_input_features(target_data, get_retweet_used_features())
     with open("model_nn/nn_model_retweet.pickle", "rb") as f:
         return predict(f, target_data)
 
 
 def quote_pred_model(target_data):
-    target_data = prepare_input_features(target_data, get_quote_used_features())
+    #target_data = prepare_input_features(target_data, get_quote_used_features())
     with open("model_nn/nn_model_retweet_with_comment.pickle", "rb") as f:
         return predict(f, target_data)
 
 
 def fav_pred_model(target_data):
-    target_data = prepare_input_features(target_data, get_fav_used_features())
+    #target_data = prepare_input_features(target_data, get_fav_used_features())
     with open("model_nn/nn_model_like.pickle", "rb") as f:
         return predict(f, target_data)
 
 
 def predict(file, target_data):
-    target_data = normalize(target_data)
+    #target_data = normalize(target_data)
     model = pickle.load(file)
+    #print(f"normalized: {target_data}")
     pred = model.predict(target_data)
     # return pred
     return np.clip(pred, 0, 1)
 
 
-def init_retweet_model_nn() -> None:
+def init_retweet_model_nn(nrows=1000) -> None:
     used_features = get_retweet_used_features()
     target_features = [
             "retweet",
@@ -85,7 +87,7 @@ def init_retweet_model_nn() -> None:
     _init_model_nn(data, target_features[0])
 
 
-def init_reply_model_nn() -> None:
+def init_reply_model_nn(nrows=1000) -> None:
     used_features = get_reply_used_features()
     target_features = [
             # "retweet",
@@ -101,7 +103,7 @@ def init_reply_model_nn() -> None:
     _init_model_nn(data, target_features[0])
 
 
-def init_fav_model_nn() -> None:
+def init_fav_model_nn(nrows=1000) -> None:
     used_features = get_fav_used_features()
     target_features = [
             # "retweet",
@@ -117,7 +119,7 @@ def init_fav_model_nn() -> None:
     _init_model_nn(data, target_features[0])
 
 
-def init_quote_model_nn() -> None:
+def init_quote_model_nn(nrows=1000) -> None:
     used_features = get_quote_used_features()
     target_features = [
             # "retweet",
