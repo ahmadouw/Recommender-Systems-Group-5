@@ -6,7 +6,7 @@ from joblib import dump, load
 
 used_features = ["tweet_type", "language", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
 target_features = ["retweet", "reply", "like", "retweet_with_comment"]
-data = dataprep.import_data(source_features=used_features, target_features=target_features)
+# data = dataprep.import_data(source_features=used_features, target_features=target_features)
 
 model_reply_path = "model_content/model_reply.joblib"
 model_retweet_path = "model_content/model_retweet.joblib"
@@ -72,32 +72,27 @@ else:
     dump(model_fav, model_fav_path)
 
 
-def prepare_input_features(input_features):
-    input_features = input_features.loc[:, used_features]
-    return dataprep.transform_data(input_features)
-
-
 def reply_pred_model(input_features):
     model = model_reply
-    prediction = model.predict(prepare_input_features(input_features))
+    prediction = model.predict(input_features)
     return prediction
 
 
 def retweet_pred_model(input_features):
     model = model_retweet
-    prediction = model.predict(prepare_input_features(input_features))
+    prediction = model.predict(input_features)
     return prediction
 
 
 def quote_pred_model(input_features):
     model = model_quote
-    prediction = model.predict(prepare_input_features(input_features))
+    prediction = model.predict(input_features)
     return prediction
 
 
 def fav_pred_model(input_features):
     model = model_fav
-    prediction = model.predict(prepare_input_features(input_features))
+    prediction = model.predict(input_features)
     return prediction
 
 
