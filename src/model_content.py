@@ -4,9 +4,9 @@ import os
 from sklearn.ensemble import GradientBoostingRegressor
 from joblib import dump, load
 
-used_features = ["tweet_type", "language", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
+used_features = ["tweet_type", "hashtags", "present_media", "present_links", "present_domains", "text_tokens"]
 target_features = ["retweet", "reply", "like", "retweet_with_comment"]
-# data = dataprep.import_data(source_features=used_features, target_features=target_features)
+data = dataprep.import_data(source_features=used_features, target_features=target_features)
 
 model_reply_path = "model_content/model_reply.joblib"
 model_retweet_path = "model_content/model_retweet.joblib"
